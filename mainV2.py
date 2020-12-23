@@ -150,7 +150,7 @@ if __name__ == '__main__':
         model_type = asst.model_type
     # area = '1_72_55677'   #area id
     if not asst.area:
-        area = '1_72_55677'  # area id
+        area = '17_1381_50718_53772'  # area id
         # area = '1_2802_54746'  # area id
     else:
         area = asst.area

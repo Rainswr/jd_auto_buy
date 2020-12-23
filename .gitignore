@@ -2,7 +2,8 @@ __pycache__/
 .idea/
 cookies/
 build/
-config/
+config/jd*
+config/*.png
 dist/
 *.pyc
 *.log

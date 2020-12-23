@@ -55,7 +55,7 @@ class Assistant(object):
         self.retryinterval = global_config.get('item', 'retryinterval')
         self.item_info = dict()
         self.retry_time = 5
-        if not self.eid or not self.fp or not self.track_id or not self.risk_control:
+        if not self.eid or not self.fp or not self.track_id:
             raise AsstException('请在 config.ini 中配置 eid, fp, track_id, risk_control 参数，具体请参考 wiki-常见问题')
 
         if not self.retryinterval:

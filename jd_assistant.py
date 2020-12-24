@@ -967,8 +967,8 @@ class Assistant(object):
                 return
             soup = BeautifulSoup(resp.text, "html.parser")
             self.risk_control = get_tag_value(soup.select('input#riskControl'), 'value')
-            # self.eid = resp2.html.find('#eid', first=True).text
-            # self.fp = resp2.html.find('#fp', first=True).text
+            self.eid = resp2.html.find('#eid', first=True).text
+            self.fp = resp2.html.find('#fp', first=True).text
             print("eid: %s, fp: %s, trackId: %s"%(self.eid, self.fp, self.track_id))
             sendAddr = soup.find('span', id='sendAddr').text[5:]
             addrs = re.split(r'\s+', sendAddr)

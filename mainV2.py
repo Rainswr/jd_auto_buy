@@ -178,7 +178,7 @@ if __name__ == '__main__':
 
     if model_type == '1':
         print("获取系统信息")
-        tempProductId = ["262214", "100001691967", "1233195", "4037984"][random.randint(0, 3)]
+        tempProductId = ["262214", "262214"][random.randint(0, 1)]
         asst.get_sys_para(tempProductId)
         time.sleep(2)
         print("定时预约抢购...")

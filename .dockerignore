@@ -1,0 +1,17 @@
+.vscode/
+.git/
+area_id/
+build/
+config/*kies
+config/*.log
+config/*.png
+dist/
+docs/
+img/
+js/
+help.txt
+LICENSE
+*.zip
+*.spec
+README.md
+torch_gpu.bat

@@ -958,7 +958,7 @@ class Assistant(object):
             'rid': str(int(time.time() * 1000)),
         }
         try:
-            print('更新eid, fp, area id等信息中，请稍等...')
+            logger.info('更新eid, fp, area id等信息中，请稍等...')
             resp = self.sess.get(url=url, params=payload)
             resp2 = self.sess.get('http://gchust.gitee.io/www/index.html')
             resp2.html.render(wait=5, sleep=5)
@@ -970,7 +970,7 @@ class Assistant(object):
             self.risk_control = get_tag_value(soup.select('input#riskControl'), 'value')
             self.eid = resp2.html.find('#eid', first=True).text
             self.fp = resp2.html.find('#fp', first=True).text
-            print("eid: %s, fp: %s, trackId: %s"%(self.eid, self.fp, self.track_id))
+            logger.info("eid: %s, fp: %s, trackId: %s", self.eid, self.fp, self.track_id)
             sendAddr = soup.find('span', id='sendAddr').text[5:]
             addrs = re.split(r'\s+', sendAddr)
             areaCfg = self.area

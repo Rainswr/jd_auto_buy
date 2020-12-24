@@ -4,6 +4,7 @@ from jd_assistant import Assistant
 import random
 
 import requests
+from requests_html import HTMLSession
 import datetime
 import json
 import time
@@ -77,7 +78,7 @@ def getSystemTimeduration():
     # get server time
 
     url = 'https://a.jd.com//ajax/queryServerData.html'
-    session = requests.session()
+    session = HTMLSession()
     t0_s = time.time()  # local host time
     r = session.get(url)
     ret = r.text
@@ -168,7 +169,6 @@ if __name__ == '__main__':
     #     retryinterval = 0.05 #链接获取失败,重试间隔
     # else:
     #     retryinterval = asst.loopinterval
-    
     if not model_type:
         model_type = input("请输入购买类型(1.定时预约抢购 2.正常有货购买 3.正常定时购买)：")
     asst.login_by_QRcode()  # 扫码登陆
@@ -177,6 +177,10 @@ if __name__ == '__main__':
     # 100015521004 (七彩3080)
 
     if model_type == '1':
+        print("获取系统信息")
+        tempProductId = ["262214", "100001691967", "1233195", "4037984"][random.randint(0, 3)]
+        asst.get_sys_para(tempProductId)
+        time.sleep(2)
         print("定时预约抢购...")
         if not sku_id:
             sku_id = input("请输入一个sku_id:")

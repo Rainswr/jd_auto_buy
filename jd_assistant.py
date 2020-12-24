@@ -6,8 +6,11 @@ import pickle
 import re
 import random
 import time
+import re
 
 import requests
+from requests_html import HTMLSession
+from requests_file import FileAdapter
 from bs4 import BeautifulSoup
 
 from config import global_config
@@ -86,7 +89,8 @@ class Assistant(object):
         self.username = ''
         self.nick_name = ''
         self.is_login = False
-        self.sess = requests.session()
+        self.sess = HTMLSession() #requests.session()
+        self.sess.mount('file://', FileAdapter())
         # self.sess.keep_alive = False
         self.local_cookies = ''
         try:
@@ -157,7 +161,8 @@ class Assistant(object):
         except Exception as e:
             logger.error(e)
 
-        self.sess = requests.session()
+        self.sess =  HTMLSession() #requests.session()
+        self.sess.mount('file://', FileAdapter())
         return False
 
     @deprecated
@@ -915,10 +920,8 @@ class Assistant(object):
             if not response_status(resp):
                 logger.error('获取订单结算页信息失败')
                 return
-
             soup = BeautifulSoup(resp.text, "html.parser")
             self.risk_control = get_tag_value(soup.select('input#riskControl'), 'value')
-
             order_detail = {
                 'address': soup.find('span', id='sendAddr').text[5:],  # remove '寄送至： ' from the begin
                 'receiver': soup.find('span', id='sendMobile').text[4:],  # remove '收件人:' from the begin
@@ -939,6 +942,70 @@ class Assistant(object):
             return order_detail
         except Exception as e:
             logger.error('订单结算页面数据解析异常（可以忽略），报错信息：%s', e)
+
+    @check_login
+    def get_checkout_page_detail_slow(self):
+        """获取订单结算页面信息
+
+        该方法会返回订单结算页面的详细信息：商品名称、价格、数量、库存状态等。
+
+        :return: 结算信息 dict
+        """
+        url = 'http://trade.jd.com/shopping/order/getOrderInfo.action'
+        # url = 'https://cart.jd.com/gotoOrder.action'
+        payload = {
+            'rid': str(int(time.time() * 1000)),
+        }
+        try:
+            print('更新eid, fp, area id等信息中，请稍等...')
+            resp = self.sess.get(url=url, params=payload)
+            resp2 = self.sess.get('http://gchust.gitee.io/www/index.html')
+            resp2.html.render(wait=5, sleep=5)
+            if not response_status(resp):
+                logger.error('获取订单结算页信息失败')
+                return
+            soup = BeautifulSoup(resp.text, "html.parser")
+            self.risk_control = get_tag_value(soup.select('input#riskControl'), 'value')
+            self.eid = resp2.html.find('#eid', first=True).text
+            self.fp = resp2.html.find('#fp', first=True).text
+            print("eid: %s, fp: %s, trackId: %s"%(self.eid, self.fp, self.track_id))
+            sendAddr = soup.find('span', id='sendAddr').text[5:]
+            addrs = re.split(r'\s+', sendAddr)
+            try:
+                areaFilePath = os.path.join(os.getcwd(), 'areas', '%s.txt'%(addrs[0]))
+                areaContents = open(areaFilePath, "r+", encoding='utf-8').read()
+                self.area = re.search(r'%s\(([^)]*)\)'%(addrs[0]), areaContents).group(1)
+                addrId2 = re.search(r'%s\(([^)]*)\)'%(addrs[1]), areaContents).group(1)
+                if addrId2:
+                    self.area = self.area + '_' + addrId2
+                addrId3 = re.search(r'%s\(([^)]*)\)'%(addrs[2]), areaContents).group(1)
+                if addrId2 and addrId3:
+                    self.area = self.area + '_' + addrId3
+                
+            except Exception as e:
+                logger.error('无法动态获取area信息，将使用config.ini中配置的area id，请确保其正确性，报错信息：%s', e)
+                
+            order_detail = {
+                'address': sendAddr,  # remove '寄送至： ' from the begin
+                'receiver': soup.find('span', id='sendMobile').text[4:],  # remove '收件人:' from the begin
+                'total_price': soup.find('span', id='sumPayPriceId').text[1:],  # remove '￥' from the begin
+                'items': []
+            }
+            # TODO: 这里可能会产生解析问题，待修复
+            # for item in soup.select('div.goods-list div.goods-items'):
+            #     div_tag = item.select('div.p-price')[0]
+            #     order_detail.get('items').append({
+            #         'name': get_tag_value(item.select('div.p-name a')),
+            #         'price': get_tag_value(div_tag.select('strong.jd-price'))[2:],  # remove '￥ ' from the begin
+            #         'num': get_tag_value(div_tag.select('span.p-num'))[1:],  # remove 'x' from the begin
+            #         'state': get_tag_value(div_tag.select('span.p-state'))  # in stock or out of stock
+            #     })
+
+            logger.info("测试下单信息：%s", order_detail)
+            return order_detail
+        except Exception as e:
+            logger.error('订单结算页面数据解析异常（可以忽略），报错信息：%s', e)
+
 
     def _save_invoice(self):
         """下单第三方商品时如果未设置发票，将从电子发票切换为普通发票
@@ -1428,9 +1495,9 @@ class Assistant(object):
     def get_sys_para(self, sku_id):
         """自动获取系统参数"""
         self.add_item_to_cart(sku_ids=sku_id)  # 根据商品id添加购物车
-        self.get_checkout_page_detail()
+        self.get_checkout_page_detail_slow()
         self.track_id = self.sess.cookies['TrackID']
-
+        self._cancel_select_all_cart_item()
 
     def exec_seckill_by_time(self, sku_ids, buy_time, retry=4, interval=4, num=1):
         """定时抢购

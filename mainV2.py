@@ -214,8 +214,10 @@ if __name__ == '__main__':
             buy_time = input("请输入抢购时间(2020-03-04 00:59:59.000):")
         #asst.exec_reserve_seckill_by_time(sku_id=sku_id,buy_time=time, retry=10, interval=1,num=1)
         if toTimeStamp(buy_time) - time.time() > 100:
-            asst.exec_seckill_by_time(
-                sku_ids=sku_id, buy_time=buy_time, retry=retry, interval=loopinterval, num=1)
+            try:
+                asst.exec_seckill_by_time(sku_ids=sku_id, buy_time=buy_time, retry=retry, interval=loopinterval, num=1)
+            finally:
+                asst.sess.close()
         else:
             logger.info("已过时:buy_time:%s now:%s"%(buy_time,datetime.datetime.now()))
             

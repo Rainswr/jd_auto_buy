@@ -961,30 +961,41 @@ class Assistant(object):
             resp = self.sess.get(url=url, params=payload)
             resp2 = self.sess.get('http://gchust.gitee.io/www/index.html')
             resp2.html.render(wait=5, sleep=5)
+            resp2.close()
             if not response_status(resp):
                 logger.error('获取订单结算页信息失败')
                 return
             soup = BeautifulSoup(resp.text, "html.parser")
             self.risk_control = get_tag_value(soup.select('input#riskControl'), 'value')
-            self.eid = resp2.html.find('#eid', first=True).text
-            self.fp = resp2.html.find('#fp', first=True).text
+            # self.eid = resp2.html.find('#eid', first=True).text
+            # self.fp = resp2.html.find('#fp', first=True).text
             print("eid: %s, fp: %s, trackId: %s"%(self.eid, self.fp, self.track_id))
             sendAddr = soup.find('span', id='sendAddr').text[5:]
             addrs = re.split(r'\s+', sendAddr)
+            areaCfg = self.area
             try:
                 areaFilePath = os.path.join(os.getcwd(), 'areas', '%s.txt'%(addrs[0]))
                 areaContents = open(areaFilePath, "r+", encoding='utf-8').read()
                 self.area = re.search(r'%s\(([^)]*)\)'%(addrs[0]), areaContents).group(1)
-                addrId2 = re.search(r'%s\(([^)]*)\)'%(addrs[1]), areaContents).group(1)
-                if addrId2:
+                addrId1 = re.search(r'%s\(([^)]*)\)'%(addrs[1]), areaContents).group(1) if addrs[1] else None
+                if addrId1:
+                    self.area = self.area + '_' + addrId1
+                addrId2 = re.search(r'%s\(([^)]*)\)'%(addrs[2]), areaContents).group(1) if addrs[2] else None
+                if addrId1 and addrId2:
                     self.area = self.area + '_' + addrId2
-                addrId3 = re.search(r'%s\(([^)]*)\)'%(addrs[2]), areaContents).group(1)
-                if addrId2 and addrId3:
+                addrId3 = re.search(r'%s\(([^)]*)\)'%(addrs[3]), areaContents).group(1) if addrs[3] else None
+                if addrId1 and addrId2 and addrId3:
                     self.area = self.area + '_' + addrId3
-                
+                addrId4 = re.search(r'%s\(([^)]*)\)'%(addrs[4]), areaContents).group(1) if addrs[4] else None 
+                if addrId1 and addrId2 and addrId3 and addrId4:
+                    self.area = self.area + '_' + addrId4
+                addrId5 = re.search(r'%s\(([^)]*)\)'%(addrs[5]), areaContents).group(1) if addrs[5] else None
+                if addrId1 and addrId2 and addrId3 and addrId4:
+                    self.area = self.area + '_' + addrId5
             except Exception as e:
-                logger.error('无法动态获取area信息，将使用config.ini中配置的area id，请确保其正确性，报错信息：%s', e)
-                
+                self.area = self.area if self.area != "" else areaCfg
+                logger.info('area id为：%s', self.area)
+
             order_detail = {
                 'address': sendAddr,  # remove '寄送至： ' from the begin
                 'receiver': soup.find('span', id='sendMobile').text[4:],  # remove '收件人:' from the begin

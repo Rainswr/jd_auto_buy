@@ -329,6 +329,7 @@ class Assistant(object):
         QRCode_file = 'config%sQRcode.png'%(os.sep)
         save_image(resp, QRCode_file)
         logger.info('二维码获取成功，请打开京东APP扫描')
+        self.messenger.sendImg('config/QRcode.png')
         open_image(QRCode_file)
         return True
 

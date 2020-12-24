@@ -39,3 +39,23 @@ class Messenger(object):
             logger.error('Request error: %s', req_error)
         except Exception as e:
             logger.error('Fail to send message [text: %s, desp: %s]: %s', text, desp, e)
+
+    def sendImg(self, imgPath):
+        try:
+            respUpload = requests.post('https://sm.ms/api/v2/upload', files={
+                'smfile': open(imgPath, 'rb')
+            })
+            upload_resp_json = json.loads(respUpload.text)
+
+            resp = requests.get(
+                'https://sc.ftqq.com/{}.send?text={}&desp=![]({})'.format(self.sc_key, "Login_code", upload_resp_json['data']['url'])
+            )
+            resp_json = json.loads(resp.text)
+            if resp_json.get('errno') == 0:
+                logger.info('Message sent image: %s', upload_resp_json['data']['url'])
+            else:
+                logger.error('Fail to send image, reason: %s', resp.text)
+        except requests.exceptions.RequestException as req_error:
+            logger.error('Request error: %s', req_error)
+        except Exception as e:
+            logger.error('Fail to send image: %s', e)

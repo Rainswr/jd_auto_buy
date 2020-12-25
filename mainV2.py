@@ -137,7 +137,10 @@ if __name__ == '__main__':
     https://github.com/tychxn/jd-assistant/wiki/1.-%E4%BA%AC%E4%B8%9C%E6%8A%A2%E8%B4%AD%E5%8A%A9%E6%89%8B%E7%94%A8%E6%B3%95
     """
     # area = '19_1607_4773'  # 区域id
-    asst = Assistant()  # 初始化
+    try:
+        asst = Assistant()  # 初始化
+    except Exception as e:
+        logger.error("闪退了%s", e)
 
     if not asst.sku_id:
         sku_id = '100012043978'  # (飞天)

@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
-from jd_assistant import Assistant
 import random
 
 import requests
@@ -11,10 +10,21 @@ import time
 import os
 # if os.name == 'nt':
 #     import win32api
-from log import logger
 import socket
 import urllib
-from timer import Timer, getTimeDurationDate,toTimeStamp
+
+try:
+    from timer import Timer, getTimeDurationDate, toTimeStamp
+    from util import pause
+    from log import logger
+    from jd_assistant import Assistant
+except BaseException as e:
+    print("程序启动异常，%s"%(e))
+    if os.name == "nt":
+        os.system('pause')  # for Windows
+    else:
+        os.system("read")  # for Linux
+    exit(1)
 # import sys
 # sys.path.insert(0,'\\Library\\bin')
 # sys.path.append('\\Library\\bin')
@@ -113,30 +123,7 @@ def getSystemTimeduration():
     print("jd:%s : %s now:%s  %s diff:%s   "%(dt2,dttime,datetime.datetime.fromtimestamp(tnow),tnow,round(dttime-tnow,2)))
     '''
 
-
-getRemoteTimeDiff()
-time_duration = getSystemTimeduration()
-
-
-dt = time.time()
-buy_time = str(datetime.datetime.fromtimestamp(dt + 2 - time_duration))
-buy_time1 = getTimeDurationDate(buy_time, time_duration)
-# buy_time1 = getTimeDurationDate(buy_time, -1.0)
-
-# buy_time = str(datetime.datetime.fromtimestamp(dt+2))
-# buy_time = '2020-11-25 13:54:01.0000'
-
-logger.info("Test now:   %s  buy_time:%s time_duration:%s fixTime:%s",
-            datetime.datetime.fromtimestamp(dt), buy_time, time_duration,buy_time1)
-t = Timer(buy_time=buy_time, sleep_interval=0.01)
-t.start()
-
-if __name__ == '__main__':
-    """
-    重要提示：此处为示例代码之一，请移步下面的链接查看使用教程👇
-    https://github.com/tychxn/jd-assistant/wiki/1.-%E4%BA%AC%E4%B8%9C%E6%8A%A2%E8%B4%AD%E5%8A%A9%E6%89%8B%E7%94%A8%E6%B3%95
-    """
-    # area = '19_1607_4773'  # 区域id
+def run():
     try:
         asst = Assistant()  # 初始化
     except Exception as e:
@@ -240,3 +227,34 @@ if __name__ == '__main__':
         asst.add_item_to_cart(sku_ids=sku_ids)  # 根据商品id添加购物车（可选）
         asst.submit_order_by_time(
             buy_time=buy_time, retry=retry, interval=loopinterval)  # 定时提交订单
+
+
+getRemoteTimeDiff()
+time_duration = getSystemTimeduration()
+
+
+dt = time.time()
+buy_time = str(datetime.datetime.fromtimestamp(dt + 2 - time_duration))
+buy_time1 = getTimeDurationDate(buy_time, time_duration)
+# buy_time1 = getTimeDurationDate(buy_time, -1.0)
+
+# buy_time = str(datetime.datetime.fromtimestamp(dt+2))
+# buy_time = '2020-11-25 13:54:01.0000'
+
+logger.info("Test now:   %s  buy_time:%s time_duration:%s fixTime:%s",
+            datetime.datetime.fromtimestamp(dt), buy_time, time_duration,buy_time1)
+t = Timer(buy_time=buy_time, sleep_interval=0.01)
+t.start()
+
+if __name__ == '__main__':
+    """
+    重要提示：此处为示例代码之一，请移步下面的链接查看使用教程👇
+    https://github.com/tychxn/jd-assistant/wiki/1.-%E4%BA%AC%E4%B8%9C%E6%8A%A2%E8%B4%AD%E5%8A%A9%E6%89%8B%E7%94%A8%E6%B3%95
+    """
+    # area = '19_1607_4773'  # 区域id
+    try:
+        run()
+    except BaseException as e:
+        logger.error("程序异常: %s", e)
+
+    pause()

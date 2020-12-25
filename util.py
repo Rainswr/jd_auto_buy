@@ -243,3 +243,9 @@ def get_random_useragent():
     :return: UserAgent字符串
     """
     return random.choice(USER_AGENTS)
+
+def pause():
+    if os.name == "nt":
+        os.system('pause')  # for Windows
+    else:
+        os.system("read")  # for Linux
